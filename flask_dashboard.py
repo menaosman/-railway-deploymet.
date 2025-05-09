@@ -184,6 +184,7 @@ def encode_plot():
     buf.seek(0)
     return base64.b64encode(buf.getvalue()).decode('utf-8')
     @app.route('/upload_mongo', methods=['GET', 'POST'])
+@app.route('/upload_mongo', methods=['GET', 'POST'])
 def upload_mongo():
     if request.method == 'POST':
         file = request.files['file']
@@ -194,31 +195,30 @@ def upload_mongo():
             records = df.to_dict("records")
             collection.insert_many(records)
             return "<h3 class='text-success'>✅ Upload to MongoDB Successful!</h3><a href='/' class='btn btn-primary'>🏠 Home</a>"
-
-    return """
+    return render_template_string("""
     <h2>📦 Upload Data to MongoDB</h2>
     <form action='/upload_mongo' method='post' enctype='multipart/form-data'>
         <input type='file' name='file' class='form-control mb-3' style='width:300px;'>
         <button type='submit' class='btn btn-success'>Upload</button>
     </form>
     <a href='/' class='btn btn-secondary mt-4'>🏠 Home</a>
-    """
+    """)
 
 @app.route('/fetch_mongo', methods=['GET'])
 def fetch_mongo():
     data = list(collection.find({}, {"_id": 0, "Text": 1, "Sentiment": 1, "Timestamp": 1}))
     if not data:
         return "<h3 class='text-danger'>No data found in MongoDB!</h3><a href='/' class='btn btn-secondary'>🏠 Home</a>"
-
     df = pd.DataFrame(data)
     table_html = df.to_html(index=False, classes='table table-striped table-bordered')
+    return f"""<h2>📥 Fetched Data from MongoDB</h2>{table_html}<a href='/' class='btn btn-secondary mt-4'>🏠 Home</a>"""
 
-    return f"""
-    <h2>📥 Fetched Data from MongoDB</h2>
-    {table_html}
-    <a href='/' class='btn btn-secondary mt-4'>🏠 Home</a>
-    """
-
+def encode_plot():
+    buf = io.BytesIO()
+    plt.savefig(buf, format='png', bbox_inches='tight')
+    plt.close()
+    buf.seek(0)
+    return base64.b64encode(buf.getvalue()).decode('utf-8')
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
