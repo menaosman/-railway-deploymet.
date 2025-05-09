@@ -184,6 +184,7 @@ def encode_plot():
     buf.seek(0)
     return base64.b64encode(buf.getvalue()).decode('utf-8')
     @app.route('/upload_mongo', methods=['GET', 'POST'])
+    
 @app.route('/upload_mongo', methods=['GET', 'POST'])
 def upload_mongo():
     if request.method == 'POST':
@@ -212,7 +213,6 @@ def fetch_mongo():
     df = pd.DataFrame(data)
     table_html = df.to_html(index=False, classes='table table-striped table-bordered')
     return f"""<h2>📥 Fetched Data from MongoDB</h2>{table_html}<a href='/' class='btn btn-secondary mt-4'>🏠 Home</a>"""
-
 def encode_plot():
     buf = io.BytesIO()
     plt.savefig(buf, format='png', bbox_inches='tight')
