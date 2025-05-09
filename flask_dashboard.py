@@ -1,40 +1,26 @@
-from flask import Flask, render_template, jsonify
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
+from flask import Flask, render_template
 from pymongo import MongoClient
-import io
-import base64
+import pandas as pd
+import plotly.express as px
 
 app = Flask(__name__)
 
-# MongoDB Connection
+# MongoDB Setup
 mongo_uri = "mongodb+srv://biomedicalinformatics100:MyNewSecurePass%2123@cluster0.jilvfuv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
 client = MongoClient(mongo_uri, tls=True, tlsAllowInvalidCertificates=True)
 collection = client["sentiment_analysis"]["tweets"]
 
-@app.route('/')
+@app.route("/")
 def home():
-    return "<h1>Welcome to the Flask Dashboard!</h1><p>Use /dashboard to view analytics.</p>"
-
-@app.route('/dashboard')
-def dashboard():
     data = list(collection.find({}, {"_id": 0, "Text": 1, "Sentiment": 1, "Timestamp": 1}))
     df = pd.DataFrame(data)
 
-    # Simple Sentiment Plot
-    plt.figure(figsize=(6,4))
-    sns.countplot(data=df, x="Sentiment")
-    img = io.BytesIO()
-    plt.savefig(img, format='png')
-    img.seek(0)
-    plot_url = base64.b64encode(img.getvalue()).decode()
+    sentiment_counts = df["Sentiment"].value_counts().reset_index()
+    fig = px.pie(sentiment_counts, values='Sentiment', names='index', title='Sentiment Distribution')
 
-    html = f"""
-    <h1>Sentiment Distribution</h1>
-    <img src="data:image/png;base64,{plot_url}">
-    """
-    return html
+    chart_html = fig.to_html(full_html=False)
 
-if __name__ == '__main__':
+    return render_template("dashboard.html", chart_html=chart_html)
+
+if __name__ == "__main__":
     app.run(debug=True)
