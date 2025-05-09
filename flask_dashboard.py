@@ -24,16 +24,12 @@ def home():
     <head>
         <title>Tweet Sentiment Analyzer</title>
         <link href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css' rel='stylesheet'>
-        <style>
-            body { padding: 40px; background-color: #f8f9fa; }
-            h2 { margin-bottom: 20px; }
-            button { margin-right: 10px; }
-        </style>
     </head>
-    <body>
-        <h2>📊 Tweet Sentiment Analyzer</h2>
-        <a href='/dashboard'><button class='btn btn-primary'>📈 Go to Dashboard</button></a>
-        <a href='/upload'><button class='btn btn-success'>📤 Upload CSV</button></a>
+    <body class='container'>
+        <h2 class='my-4'>📊 Tweet Sentiment Analyzer</h2>
+        <a href='/dashboard' class='btn btn-primary'>📈 Dashboard</a>
+        <a href='/upload' class='btn btn-success'>📤 Upload CSV</a>
+        <a href='/download_csv' class='btn btn-warning'>📥 Download CSV</a>
     </body>
     </html>
     """
@@ -45,7 +41,7 @@ def dashboard():
     df = pd.DataFrame(data)
 
     if df.empty:
-        return "<h3>No Data Found in MongoDB!</h3>"
+        return "<h3 class='text-center text-danger'>No Data Found in MongoDB!</h3>"
 
     if keyword:
         df = df[df["Text"].str.contains(keyword, case=False)]
@@ -59,18 +55,14 @@ def dashboard():
     <!DOCTYPE html>
     <html>
     <head>
-        <title>Sentiment Dashboard</title>
+        <title>Dashboard</title>
         <link href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css' rel='stylesheet'>
-        <style>
-            body {{ padding: 20px; background-color: #f8f9fa; }}
-            img {{ margin-bottom: 30px; }}
-        </style>
     </head>
-    <body>
-        <h2>📊 Sentiment Dashboard</h2>
+    <body class='container'>
+        <h2 class='my-4'>📊 Sentiment Dashboard</h2>
         <form action='/dashboard' method='get' class='mb-4'>
             <input type='text' name='keyword' placeholder='Enter keyword' value='{keyword}' class='form-control' style='width: 300px; display: inline;'>
-            <button type='submit' class='btn btn-info'>🔍 Filter</button>
+            <button type='submit' class='btn btn-info mt-2'>🔍 Filter</button>
         </form>
         <h3>📌 Sentiment Distribution</h3>
         <img src='data:image/png;base64,{sentiment_plot}' width='400'/>
@@ -78,11 +70,9 @@ def dashboard():
         <img src='data:image/png;base64,{timeline_plot}' width='600'/>
         <h3>☁️ WordCloud</h3>
         <img src='data:image/png;base64,{wordcloud_plot}' width='600'/>
-        <h3>📄 Raw Tweets Table</h3>
+        <h3>📄 Tweets Table</h3>
         {table_html}
-        <br><br>
-        <a href='/download_csv'><button class='btn btn-warning'>📥 Download CSV</button></a>
-        <a href='/'><button class='btn btn-secondary'>🏠 Home</button></a>
+        <a href='/' class='btn btn-secondary mt-4'>🏠 Home</a>
     </body>
     </html>
     """
@@ -98,7 +88,7 @@ def upload():
             df["BatchTimestamp"] = now
             records = df.to_dict("records")
             collection.insert_many(records)
-            return "<h3>✅ Upload Successful!</h3><a href='/dashboard'>Go to Dashboard</a>"
+            return "<h3 class='text-success'>✅ Upload Successful!</h3><a href='/dashboard' class='btn btn-primary'>Go to Dashboard</a>"
 
     return """
     <!DOCTYPE html>
@@ -106,15 +96,14 @@ def upload():
     <head>
         <title>Upload CSV</title>
         <link href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css' rel='stylesheet'>
-        <style> body {{ padding: 40px; background-color: #f8f9fa; }} </style>
     </head>
-    <body>
-        <h2>📤 Upload CSV</h2>
+    <body class='container'>
+        <h2 class='my-4'>📤 Upload CSV</h2>
         <form action='/upload' method='post' enctype='multipart/form-data'>
-            <input type='file' name='file' class='form-control' style='width:300px;'>
-            <button type='submit' class='btn btn-success mt-2'>Upload</button>
+            <input type='file' name='file' class='form-control mb-3' style='width:300px;'>
+            <button type='submit' class='btn btn-success'>Upload</button>
         </form>
-        <br><a href='/'><button class='btn btn-secondary'>🏠 Home</button></a>
+        <a href='/' class='btn btn-secondary mt-4'>🏠 Home</a>
     </body>
     </html>
     """
