@@ -1,4 +1,4 @@
-from flask import Flask, render_template_string, request, send_file
+from flask import Flask, render_template_string, request, send_file, jsonify
 from pymongo import MongoClient
 import pandas as pd
 import matplotlib.pyplot as plt
