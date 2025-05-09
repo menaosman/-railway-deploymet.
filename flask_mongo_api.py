@@ -3,6 +3,9 @@ from flask_cors import CORS
 from pymongo import MongoClient
 from datetime import datetime
 import os
+@app.route('/')
+def home():
+    return "<h1>Welcome to the Flask API Dashboard!</h1><p>Use <a href='/fetch'>/fetch</a> to get tweets data.</p>"
 
 app = Flask(__name__)
 CORS(app)
