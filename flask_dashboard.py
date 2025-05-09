@@ -19,7 +19,16 @@ collection = client["sentiment_analysis"]["tweets"]
 def home():
     return render_template_string("""
     <h2>📊 Tweet Sentiment Analyzer</h2>
-    <lottie-player src='https://assets2.lottiefiles.com/packages/lf20_puciaact.json' background='transparent' speed='1' style='width: 300px; height: 300px;' loop autoplay></lottie-player>
+    <lottie-player src='https://assets2.lottiefiles.com/packages/lf20_puciaact.json' background='transparent' speed='1' style='width: 100%; height: auto;' loop autoplay></lottie-player>
+    <p>Welcome to the <strong>Tweet Sentiment Analyzer</strong>! 👋<br>
+    Upload your dataset to:<br>
+    ✅ Detect sentiment (positive 😊, neutral 😐, negative 😠)<br>
+    ☁️ Generate WordClouds<br>
+    📈 Track sentiment trends over time<br>
+    🔍 Filter tweets by keywords<br>
+    📦 Use the Upload to MongoDB button to save data for later analysis.<br>
+    📥 Use the Fetch from MongoDB button to load and analyze existing data (shows first 20 records, click Extend to see more).<br>
+    </p>
     <div class='btn-group'>
         <a href='/dashboard' class='btn btn-primary'>📈 Dashboard</a>
         <a href='/tweets_table' class='btn btn-dark'>📋 Tweets Table</a>
@@ -69,11 +78,16 @@ def tweets_table():
         return "<h3 class='text-danger'>No Tweets Found!</h3><a href='/' class='btn btn-secondary'>🏠 Home</a>"
 
     df = pd.DataFrame(data)
-    table_html = df.to_html(index=False, classes='table table-striped table-bordered')
+    df['Sentiment'] = df['Sentiment'].map({"positive": "😊 Positive", "neutral": "😐 Neutral", "negative": "😠 Negative"})
+    first_20 = df.head(20).to_html(index=False, classes='table table-striped table-bordered', justify='center')
 
     return f"""
     <h2>📋 Tweets Table</h2>
-    {table_html}
+    {first_20}
+    <button onclick="document.getElementById('more_tweets').style.display='block'; this.style.display='none';" class='btn btn-info mt-2'>Extend</button>
+    <div id='more_tweets' style='display:none;'>
+        {df.to_html(index=False, classes='table table-striped table-bordered', justify='center')}
+    </div>
     <a href='/' class='btn btn-secondary mt-4'>🏠 Home</a>
     """
 
@@ -132,9 +146,21 @@ def fetch_mongo():
     data = list(collection.find({}, {"_id": 0, "Text": 1, "Sentiment": 1, "Timestamp": 1}))
     if not data:
         return "<h3 class='text-danger'>No data found in MongoDB!</h3><a href='/' class='btn btn-secondary'>🏠 Home</a>"
+
     df = pd.DataFrame(data)
-    table_html = df.to_html(index=False, classes='table table-striped table-bordered')
-    return f"<h2>📥 Fetched Data from MongoDB</h2>{table_html}<a href='/' class='btn btn-secondary mt-4'>🏠 Home</a>"
+    df['Sentiment'] = df['Sentiment'].map({"positive": "😊 Positive", "neutral": "😐 Neutral", "negative": "😠 Negative"})
+    first_20 = df.head(20).to_html(index=False, classes='table table-striped table-bordered', justify='center')
+
+    return f"""
+    <h2>📥 Fetched Data from MongoDB</h2>
+    {first_20}
+    <button onclick="document.getElementById('more').style.display='block'; this.style.display='none';" class='btn btn-info mt-2'>Extend</button>
+    <div id='more' style='display:none;'>
+        {df.to_html(index=False, classes='table table-striped table-bordered', justify='center')}
+    </div>
+    <a href='/' class='btn btn-secondary mt-4'>🏠 Home</a>
+    """
+
 
 def plot_sentiment_distribution(df):
     plt.figure(figsize=(4, 4))
