@@ -24,9 +24,17 @@ def home():
     <head>
         <title>Tweet Sentiment Analyzer</title>
         <link href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css' rel='stylesheet'>
+        <script src='https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js'></script>
+        <style>
+            body { padding: 40px; background-color: #f8f9fa; text-align: center; }
+            h2 { margin-bottom: 20px; }
+            button { margin: 10px; }
+        </style>
     </head>
-    <body class='container'>
+    <body>
         <h2 class='my-4'>📊 Tweet Sentiment Analyzer</h2>
+        <lottie-player src='https://assets2.lottiefiles.com/packages/lf20_puciaact.json' background='transparent' speed='1' style='width: 300px; height: 300px;' loop autoplay></lottie-player>
+        <br>
         <a href='/dashboard' class='btn btn-primary'>📈 Dashboard</a>
         <a href='/upload' class='btn btn-success'>📤 Upload CSV</a>
         <a href='/download_csv' class='btn btn-warning'>📥 Download CSV</a>
