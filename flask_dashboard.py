@@ -26,18 +26,32 @@ def home():
         <link href='https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css' rel='stylesheet'>
         <script src='https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js'></script>
         <style>
-            body { padding: 40px; background-color: #f8f9fa; text-align: center; }
+            body { display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; background-color: #f8f9fa; }
             h2 { margin-bottom: 20px; }
-            button { margin: 10px; }
+            .btn-group { margin-top: 20px; }
         </style>
     </head>
     <body>
-        <h2 class='my-4'>📊 Tweet Sentiment Analyzer</h2>
+        <h2>📊 Tweet Sentiment Analyzer</h2>
         <lottie-player src='https://assets2.lottiefiles.com/packages/lf20_puciaact.json' background='transparent' speed='1' style='width: 300px; height: 300px;' loop autoplay></lottie-player>
-        <br>
-        <a href='/dashboard' class='btn btn-primary'>📈 Dashboard</a>
-        <a href='/upload' class='btn btn-success'>📤 Upload CSV</a>
-        <a href='/download_csv' class='btn btn-warning'>📥 Download CSV</a>
+        <h2>📊 Tweet Sentiment Analyzer</h2>
+        <lottie-player src='https://assets2.lottiefiles.com/packages/lf20_puciaact.json' background='transparent' speed='1' style='width: 300px; height: 300px;' loop autoplay></lottie-player>
+        <div class='btn-group'>
+            <a href='/dashboard' class='btn btn-primary'>📈 Dashboard (Visualizations)</a>
+            <a href='/tweets_table' class='btn btn-dark'>📋 Tweets Table</a>
+            <a href='/upload' class='btn btn-success'>📤 Upload CSV</a>
+            <a href='/download_csv' class='btn btn-warning'>📥 Download CSV</a>
+            <a href='/upload_mongo' class='btn btn-secondary'>📦 Upload to MongoDB</a>
+            <a href='/fetch_mongo' class='btn btn-info'>📥 Fetch from MongoDB</a>
+        </div>
+        <div class='btn-group'>
+            <a href='/dashboard' class='btn btn-primary'>📈 Dashboard</a>
+            <a href='/upload' class='btn btn-success'>📤 Upload CSV</a>
+            <a href='/download_csv' class='btn btn-warning'>📥 Download CSV</a>
+            <a href='/upload_mongo' class='btn btn-secondary'>📦 Upload to MongoDB</a>
+            <a href='/fetch_mongo' class='btn btn-info'>📥 Fetch from MongoDB</a>
+        </div>
+        
     </body>
     </html>
     """
@@ -79,12 +93,25 @@ def dashboard():
         <h3>☁️ WordCloud</h3>
         <img src='data:image/png;base64,{wordcloud_plot}' width='600'/>
         <h3>📄 Tweets Table</h3>
-        {table_html}
-        <a href='/' class='btn btn-secondary mt-4'>🏠 Home</a>
+        <a>🏠 Home</a>
     </body>
     </html>
     """
     return render_template_string(html)
+@app.route('/tweets_table', methods=['GET'])
+def tweets_table():
+    data = list(collection.find({}, {"_id": 0, "Text": 1, "Sentiment": 1, "Timestamp": 1}))
+    if not data:
+        return "<h3 class='text-danger'>No Tweets Found!</h3><a href='/' class='btn btn-secondary'>🏠 Home</a>"
+
+    df = pd.DataFrame(data)
+    table_html = df.to_html(index=False, classes='table table-striped table-bordered')
+
+    return f"""
+    <h2>📋 Tweets Table</h2>
+    {table_html}
+    <a href='/' class='btn btn-secondary mt-4'>🏠 Home</a>
+    """
 
 @app.route('/upload', methods=['GET', 'POST'])
 def upload():
@@ -156,6 +183,41 @@ def encode_plot():
     plt.close()
     buf.seek(0)
     return base64.b64encode(buf.getvalue()).decode('utf-8')
+    @app.route('/upload_mongo', methods=['GET', 'POST'])
+def upload_mongo():
+    if request.method == 'POST':
+        file = request.files['file']
+        if file:
+            df = pd.read_csv(file)
+            now = datetime.now().strftime("%Y-%m-%d %H:%M")
+            df["BatchTimestamp"] = now
+            records = df.to_dict("records")
+            collection.insert_many(records)
+            return "<h3 class='text-success'>✅ Upload to MongoDB Successful!</h3><a href='/' class='btn btn-primary'>🏠 Home</a>"
+
+    return """
+    <h2>📦 Upload Data to MongoDB</h2>
+    <form action='/upload_mongo' method='post' enctype='multipart/form-data'>
+        <input type='file' name='file' class='form-control mb-3' style='width:300px;'>
+        <button type='submit' class='btn btn-success'>Upload</button>
+    </form>
+    <a href='/' class='btn btn-secondary mt-4'>🏠 Home</a>
+    """
+
+@app.route('/fetch_mongo', methods=['GET'])
+def fetch_mongo():
+    data = list(collection.find({}, {"_id": 0, "Text": 1, "Sentiment": 1, "Timestamp": 1}))
+    if not data:
+        return "<h3 class='text-danger'>No data found in MongoDB!</h3><a href='/' class='btn btn-secondary'>🏠 Home</a>"
+
+    df = pd.DataFrame(data)
+    table_html = df.to_html(index=False, classes='table table-striped table-bordered')
+
+    return f"""
+    <h2>📥 Fetched Data from MongoDB</h2>
+    {table_html}
+    <a href='/' class='btn btn-secondary mt-4'>🏠 Home</a>
+    """
 
 if __name__ == '__main__':
     port = int(os.environ.get("PORT", 5000))
