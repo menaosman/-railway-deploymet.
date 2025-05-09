@@ -7,13 +7,13 @@ import io
 import base64
 from wordcloud import WordCloud
 import os
+
 app = Flask(__name__)
 
-# MongoDB Config
+# MongoDB Config (Environment Variable or Default URI)
 mongo_uri = os.getenv("MONGO_URI", "mongodb+srv://biomedicalinformatics100:MyNewSecurePass%2123@cluster0.jilvfuv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
 client = MongoClient(mongo_uri, tls=True, tlsAllowInvalidCertificates=True)
 collection = client["sentiment_analysis"]["tweets"]
-
 
 @app.route('/')
 def home():
@@ -44,12 +44,16 @@ def dashboard():
 def plot_sentiment_distribution(df):
     plt.figure(figsize=(4, 4))
     sns.countplot(data=df, x="Sentiment", palette="Set2")
+    plt.title("Sentiment Distribution")
     return encode_plot()
 
 def plot_sentiment_over_time(df):
     df["Timestamp"] = pd.to_datetime(df["Timestamp"], errors='coerce')
     timeline = df.groupby([df["Timestamp"].dt.date, "Sentiment"]).size().unstack(fill_value=0)
     timeline.plot(kind='line', figsize=(6, 4))
+    plt.title("Sentiment Over Time")
+    plt.xlabel("Date")
+    plt.ylabel("Tweet Count")
     return encode_plot()
 
 def plot_wordcloud(df):
@@ -61,10 +65,11 @@ def plot_wordcloud(df):
 
 def encode_plot():
     buf = io.BytesIO()
-    plt.savefig(buf, format='png')
+    plt.savefig(buf, format='png', bbox_inches='tight')
     plt.close()
     buf.seek(0)
     return base64.b64encode(buf.getvalue()).decode('utf-8')
 
 if __name__ == '__main__':
-    app.run(debug=True, host="0.0.0.0", port=5000)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
