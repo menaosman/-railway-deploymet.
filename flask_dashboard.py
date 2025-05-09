@@ -1,4 +1,4 @@
-from flask import Flask, render_template_string, jsonify
+from flask import Flask, render_template_string, request, send_file
 from pymongo import MongoClient
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -7,39 +7,91 @@ import io
 import base64
 from wordcloud import WordCloud
 import os
+from datetime import datetime
 
 app = Flask(__name__)
 
-# MongoDB Config (Environment Variable or Default URI)
-mongo_uri = os.getenv("MONGO_URI", "mongodb+srv://biomedicalinformatics100:MyNewSecurePass%2123@cluster0.jilvfuv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+# MongoDB Config
+mongo_uri = os.getenv("MONGO_URI", "mongodb+srv://biomedicalinformatics100:MyNewSecurePass@cluster0.abcd123.mongodb.net/?retryWrites=true&w=majority")
 client = MongoClient(mongo_uri, tls=True, tlsAllowInvalidCertificates=True)
 collection = client["sentiment_analysis"]["tweets"]
 
 @app.route('/')
 def home():
-    return "<h2>Welcome to the Sentiment Dashboard! Try /dashboard</h2>"
+    return """
+    <h2>📊 Welcome to the Sentiment Dashboard!</h2>
+    <a href='/dashboard'><button>📈 Go to Dashboard</button></a>
+    <a href='/upload'><button>📤 Upload CSV</button></a>
+    """
 
-@app.route('/dashboard')
+@app.route('/dashboard', methods=['GET'])
 def dashboard():
+    keyword = request.args.get('keyword', '')
     data = list(collection.find({}, {"_id": 0, "Text": 1, "Sentiment": 1, "Timestamp": 1}))
     df = pd.DataFrame(data)
 
     if df.empty:
         return "<h3>No Data Found in MongoDB!</h3>"
 
+    if keyword:
+        df = df[df["Text"].str.contains(keyword, case=False)]
+
     sentiment_plot = plot_sentiment_distribution(df)
     timeline_plot = plot_sentiment_over_time(df)
     wordcloud_plot = plot_wordcloud(df)
+    table_html = df.to_html(index=False)
 
     html = f"""
     <h2>📊 Sentiment Dashboard</h2>
-    <img src="data:image/png;base64,{sentiment_plot}" width="400"/>
+    <form action='/dashboard' method='get'>
+        <input type='text' name='keyword' placeholder='Enter keyword' value='{keyword}'>
+        <button type='submit'>🔍 Filter</button>
+    </form>
+    <h3>📌 Sentiment Distribution</h3>
+    <img src='data:image/png;base64,{sentiment_plot}' width='400'/>
     <h3>📈 Sentiment Over Time</h3>
-    <img src="data:image/png;base64,{timeline_plot}" width="600"/>
+    <img src='data:image/png;base64,{timeline_plot}' width='600'/>
     <h3>☁️ WordCloud</h3>
-    <img src="data:image/png;base64,{wordcloud_plot}" width="600"/>
+    <img src='data:image/png;base64,{wordcloud_plot}' width='600'/>
+    <h3>📄 Raw Tweets Table</h3>
+    {table_html}
+    <br><br>
+    <a href='/download_csv'><button>📥 Download CSV</button></a>
     """
     return render_template_string(html)
+
+@app.route('/upload', methods=['GET', 'POST'])
+def upload():
+    if request.method == 'POST':
+        file = request.files['file']
+        if file:
+            df = pd.read_csv(file)
+            now = datetime.now().strftime("%Y-%m-%d %H:%M")
+            df["BatchTimestamp"] = now
+            records = df.to_dict("records")
+            collection.insert_many(records)
+            return "<h3>✅ Upload Successful!</h3><a href='/dashboard'>Go to Dashboard</a>"
+
+    return """
+    <h2>📤 Upload CSV</h2>
+    <form action='/upload' method='post' enctype='multipart/form-data'>
+        <input type='file' name='file'>
+        <button type='submit'>Upload</button>
+    </form>
+    <br><a href='/'>Back to Home</a>
+    """
+
+@app.route('/download_csv')
+def download_csv():
+    data = list(collection.find({}, {"_id": 0, "Text": 1, "Sentiment": 1, "Timestamp": 1}))
+    df = pd.DataFrame(data)
+    csv_io = io.StringIO()
+    df.to_csv(csv_io, index=False)
+    csv_io.seek(0)
+    return send_file(io.BytesIO(csv_io.getvalue().encode()),
+                     mimetype='text/csv',
+                     download_name="sentiment_data.csv",
+                     as_attachment=True)
 
 def plot_sentiment_distribution(df):
     plt.figure(figsize=(4, 4))
