@@ -1,6 +1,7 @@
-flask
-pymongo
+Flask
 pandas
+pymongo
 matplotlib
 seaborn
 wordcloud
+gunicorn
