@@ -1,4 +1,4 @@
-# ✅ Test CI/CD: Automatic Deployment to Railway
+
 from flask import Flask, render_template_string, request, send_file, jsonify
 from pymongo import MongoClient
 import pandas as pd
@@ -16,7 +16,6 @@ app = Flask(__name__)
 mongo_uri = os.getenv("MONGO_URI")
 client = MongoClient(mongo_uri, tls=True, tlsAllowInvalidCertificates=True)
 collection = client["sentiment_analysis"]["tweets"]
-
 
 @app.route('/')
 def home():
@@ -145,6 +144,3 @@ def encode_plot():
     plt.close()
     buf.seek(0)
     return base64.b64encode(buf.getvalue()).decode('utf-8')
-
-
-
