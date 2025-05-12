@@ -12,7 +12,6 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-# MongoDB Configuration
 mongo_uri = os.getenv("MONGO_URI")
 client = MongoClient(mongo_uri, tls=True, tlsAllowInvalidCertificates=True)
 collection = client["sentiment_analysis"]["tweets"]
@@ -35,14 +34,12 @@ def home():
     <body>
         <h2>📊 Tweet Sentiment Analyzer</h2>
         <lottie-player src="https://assets2.lottiefiles.com/packages/lf20_puciaact.json" background="transparent" speed="1" loop autoplay></lottie-player>
-        <p>Welcome to the Tweet Sentiment Analyzer! 👋<br>
-        Upload data, analyze sentiments, visualize trends, and manage data with MongoDB integration.</p>
+        <p>Welcome to the Tweet Sentiment Analyzer! 👋</p>
         <div class="btn-group">
             <a href="/dashboard" class="btn btn-primary">📈 Dashboard</a>
             <a href="/tweets_table" class="btn btn-dark">📋 Tweets Table</a>
             <a href="/upload" class="btn btn-success">📤 Upload CSV</a>
             <a href="/download_csv" class="btn btn-warning">📥 Download CSV</a>
-            <a href="/upload_mongo" class="btn btn-secondary">📦 Upload to MongoDB</a>
             <a href="/fetch_mongo" class="btn btn-info">📥 Fetch from MongoDB</a>
         </div>
     </body>
