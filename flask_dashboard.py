@@ -146,7 +146,5 @@ def encode_plot():
     buf.seek(0)
     return base64.b64encode(buf.getvalue()).decode('utf-8')
 
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
+
 
