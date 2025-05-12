@@ -1,4 +1,4 @@
-
+# ✅ Test CI/CD: Automatic Deployment to Railway
 from flask import Flask, render_template_string, request, send_file, jsonify
 from pymongo import MongoClient
 import pandas as pd
@@ -12,7 +12,8 @@ from datetime import datetime
 
 app = Flask(__name__)
 
-mongo_uri = os.getenv("MONGO_URI")
+# MongoDB Configuration
+mongo_uri = os.getenv("MONGO_URI", "your_mongodb_connection_string_here")
 client = MongoClient(mongo_uri, tls=True, tlsAllowInvalidCertificates=True)
 collection = client["sentiment_analysis"]["tweets"]
 
@@ -34,12 +35,14 @@ def home():
     <body>
         <h2>📊 Tweet Sentiment Analyzer</h2>
         <lottie-player src="https://assets2.lottiefiles.com/packages/lf20_puciaact.json" background="transparent" speed="1" loop autoplay></lottie-player>
-        <p>Welcome to the Tweet Sentiment Analyzer! 👋</p>
+        <p>Welcome to the Tweet Sentiment Analyzer! 👋<br>
+        Upload data, analyze sentiments, visualize trends, and manage data with MongoDB integration.</p>
         <div class="btn-group">
             <a href="/dashboard" class="btn btn-primary">📈 Dashboard</a>
             <a href="/tweets_table" class="btn btn-dark">📋 Tweets Table</a>
             <a href="/upload" class="btn btn-success">📤 Upload CSV</a>
             <a href="/download_csv" class="btn btn-warning">📥 Download CSV</a>
+            <a href="/upload_mongo" class="btn btn-secondary">📦 Upload to MongoDB</a>
             <a href="/fetch_mongo" class="btn btn-info">📥 Fetch from MongoDB</a>
         </div>
     </body>
@@ -141,3 +144,7 @@ def encode_plot():
     plt.close()
     buf.seek(0)
     return base64.b64encode(buf.getvalue()).decode('utf-8')
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
