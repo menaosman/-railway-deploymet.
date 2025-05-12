@@ -1,6 +1,6 @@
 Flask
 pandas
-pymongo
+pymongo 
 matplotlib
 seaborn
 wordcloud
