@@ -13,7 +13,8 @@ from datetime import datetime
 app = Flask(__name__)
 
 # MongoDB Configuration
-mongo_uri = os.getenv("MONGO_URI", "your_mongodb_connection_string_here")
+mongo_uri = os.getenv("MONGO_URI", "mongodb+srv://biomedicalinformatics100:MyNewSecurePass@cluster0.abcd123.mongodb.net/?retryWrites=true&w=majority
+")
 client = MongoClient(mongo_uri, tls=True, tlsAllowInvalidCertificates=True)
 collection = client["sentiment_analysis"]["tweets"]
 
